@@ -3,7 +3,7 @@
 All notable changes to VectorLabel are recorded here. **This file is the single source
 of truth for what changed between versions** — every fix and feature lands under
 `[Unreleased]` as it's made, and moves under a dated version heading when that version
-is released. The website's [Downloads page](https://ryancoopster.github.io/VectorLabel/downloads.html)
+is released. The website's [Downloads page](https://vectorlabel.cooperaudioservices.com/downloads.html)
 is built from these entries so users can see the changes between each release.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
@@ -11,6 +11,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/); versions are
 number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
+
+## [1.16.0] — 2026-07-25
+
+### Added
+- **Send-feedback form on the website** — a new page to report a bug or request a feature
+  without a GitHub account. It goes straight to the developer; a quick anti-spam check keeps
+  out bots.
+
+### Changed
+- **In-app problem reports now go to the developer's private repository through the website.**
+  The "Report a Problem" flow is unchanged for you — this just consolidates where reports land
+  (the separate reports repository is being retired). Older installs keep working until updated.
 
 ## [1.15.5] — 2026-07-23
 
