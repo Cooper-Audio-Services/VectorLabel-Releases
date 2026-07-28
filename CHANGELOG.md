@@ -12,6 +12,22 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.17.0] — 2026-07-27
+
+### Changed
+- **A failed update check now offers a "Download from Website" button** instead of a dead-end
+  error — if the app can't reach the update server or the download, it points you straight to
+  the website's Downloads page for the latest signed installer.
+- **If sending a problem report fails, the app offers to copy it and open the website feedback
+  form** so you can submit it manually in a couple of clicks (plus the existing Save option) —
+  rather than only showing an error.
+
+### Fixed
+- **Brother P-touch labels that are a table now import.** A `.lbx` whose content is a table —
+  like a patch-panel grid — previously wouldn't open in the designers at all (the importer
+  didn't recognize table objects, so it saw nothing to import). Tables now come in as an
+  editable table object, including merged header cells.
+
 ## [1.16.0] — 2026-07-25
 
 ### Added
