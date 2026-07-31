@@ -12,6 +12,33 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.18.0] — 2026-07-31
+
+### Added
+- **Collate tick box when printing multiple copies** in the Custom Designer. It appears once
+  you set Copies above 1 (on a job that prints more than one label, where the order actually
+  differs). Ticked prints a full set at a time — 1,2,3 · 1,2,3; unticked keeps the existing
+  behavior of printing each label's copies together — 1,1 · 2,2 · 3,3.
+- **Insert several rows at once.** Right-click a row in the Custom Designer's data grid and
+  choose "Insert rows above…" / "Insert rows below…" to be asked how many blank rows you
+  want (it defaults to however many rows you had selected). Table objects get the same
+  thing: "Add rows above…" / "Add rows below…" on a cell's right-click menu.
+
+### Fixed
+- **Brother P-touch: short labels are no longer stretched to about an inch.** The driver was
+  padding every label's image out to 24.5 mm — that figure is the minimum length of tape the
+  printer itself feeds, not a minimum image length — so anything shorter than ~1″ printed
+  with blank tape tacked on the end, and every label of a half-cut strip was padded. It now
+  uses Brother's documented 4.4 mm minimum. Note a single full-cut label may still come out
+  around 24.5 mm: that floor is the printer's own cutter position, not something the app
+  controls.
+- **Pasting into a cell you're typing in no longer replaces the whole cell.** In Free Edit,
+  ⌘V now inserts at your cursor (replacing just the text you've highlighted). It still
+  replaces the whole cell when the cell's full contents are selected — which is what you
+  get the moment you click or tab into a cell.
+- **Pasting one value into several selected cells now fills all of them** instead of only a
+  single cell.
+
 ## [1.17.1] — 2026-07-31
 
 ### Fixed
