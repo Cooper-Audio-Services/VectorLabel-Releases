@@ -12,6 +12,14 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.17.1] — 2026-07-31
+
+### Fixed
+- **The record list no longer jumps around while you edit cells in the Print window.** With
+  enough columns to scroll sideways, clicking a cell to edit it snapped the list back to the
+  leftmost column (and often to the top) — every open, save and cancel moved the view. The
+  list now stays exactly where you put it, in both the ✎ inline editor and Free Edit.
+
 ## [1.17.0] — 2026-07-27
 
 ### Changed
