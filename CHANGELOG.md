@@ -12,6 +12,18 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.18.1] — 2026-08-04
+
+### Changed
+- **Pruning an old export now also clears its Recent Prints entry.** When a project folder
+  goes over "Exports to keep per project" and older CSVs are deleted, the prints that used
+  them disappear from the Engine's Recent Prints list too — so you're no longer offered a
+  Reprint that can only answer "the original print data is no longer available". Custom
+  Designer prints are unaffected: they carry their own design, not a CSV.
+- **Preferences explains what "Exports to keep per project" does** — how many exports are
+  kept per project folder, that older ones are deleted when a new export arrives, and that
+  their Recent Prints entries go with them.
+
 ## [1.18.0] — 2026-07-31
 
 ### Added
