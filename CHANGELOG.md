@@ -12,6 +12,449 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-08-09
+
+### Added
+
+- **Merge and Split buttons in the table inspector.** Merging cells no longer requires the
+  right-click menu — select two or more cells and use the buttons in "Rows & columns" (they
+  stay visible but disabled, with a tooltip, when the selection can't be merged or split).
+- **Format a whole table at once.** Select the table itself (rather than individual cells) and
+  the inspector now offers the same font, size, style, alignment, wrap, auto-scale, tracking,
+  stretch and column-width/row-height controls — applied to every cell in one step, with one
+  undo. Each affected section shows a caution that the change applies to all cells. Controls
+  that only make sense per cell (the text source: static text, a bound field, a formula, or a
+  date/time) are deliberately not offered table-wide, since one of those written into every
+  cell would wipe the table's content.
+- **New rows and columns now inherit the table's formatting** instead of reverting to defaults.
+- **Pick out a scattered group of cells in Free Edit with ⌘-click.** Shift-click still extends a
+  contiguous range; ⌘-click now adds or removes individual cells, so you can build a selection
+  of cells that aren't next to each other. Copy, paste, fill and clear all understand the
+  scattered selection.
+- **"Insert rows above/below…" in the print window.** Right-click a row in the print window's
+  record list and you can now insert several blank rows at once, just as the Custom Designer's
+  Free Edit does — the count starts at however many rows you have selected. The new rows are
+  written back to your source CSV like any other edit, and they start unticked so they don't
+  join the job until you fill them in.
+
+- **"Copy printer properties" (Engine → Settings → your printer).** Asks the printer to list
+  *everything* it reports and writes it out next to what our supply catalog claims for the
+  loaded supply, with any difference stated in printer dots. Two reasons it exists: the
+  catalog's printable sizes are hand-entered, and the printer may report things we've never
+  read. Brady M611 for now (it's the only printer with live telemetry). The report is copied
+  to the clipboard as well as saved, so it can be pasted straight into a bug report.
+  Running it on real cassettes established that the M611 publishes its printable area as a
+  proper rectangle — size, position and rotation — and that **our catalog's printable sizes
+  are exactly right** on every supply tested. On a self-laminating wrap the rest of the label
+  is a second area: the clear flap that folds over the print, which is not somewhere you'd
+  want to print.
+
+### Changed
+
+- **The designer canvas no longer carries “Buy” buttons.** Ordering more stock now lives only
+  in the supply picker, where the part numbers are already in front of you — it was competing
+  with the print controls on a job about to run.
+- **"Rotate 90°" is now one setting per supply, and only appears where it can work.** It used
+  to be a checkbox on every part-number row of a die-cut supply, but only one of them (the row
+  the printer's loaded cassette happened to resolve to) actually changed what printed — the
+  others looked identical and did nothing. There is now a single "Feed rotation" control on the
+  supply itself, in Preferences ▸ Printers ▸ Edit Supplies…, and it applies to all of that
+  supply's part numbers. It is shown only for die-cut supplies with a **square** printable area,
+  which are the only ones the renderer can rotate (on any other shape the rotated design would
+  fall outside the printable area, so it was always ignored). If a non-square supply already has
+  the old setting saved, it is kept — not erased — and the editor now says plainly that it is
+  ignored when printing.
+- **A supply whose part-number rows disagreed about "Rotate 90°" is put back in step on first
+  launch, using the setting that was actually printing.** Only the first part number's checkbox
+  ever reached the printer, so that value is now written to all of them and shown in the single
+  new control — nothing prints differently than it did before, and the control finally matches
+  what comes out.
+- **The calibration grid now measures the edge loss instead of just flagging it.** Each of the
+  four printable edges carries a row of six short single-dot ticks, set 1, 2, 3, 5, 8 and 13
+  dots in from that edge. They are spread out **along** the edge — one per slot, in order, with
+  a clear gap between each — so you read *which slots are blank*, counting from the corner,
+  rather than trying to separate six lines packed into a millimetre. Each tick is also slightly
+  longer than the one before it, so the order stays obvious once the first few are gone. If the
+  printer can't reach right to an edge, the low-numbered slots print nothing:
+
+  | Blank slots, counting from the corner | With the thin outer frame on that side | Dots lost |
+  | --- | --- | --- |
+  | none (all six ticks print) | frame prints | 0 |
+  | none (all six ticks print) | frame missing | 1 |
+  | slot 1 | — | 2 |
+  | slots 1–2 | — | 3 |
+  | slots 1–3 | — | 4 or 5 |
+  | slots 1–4 | — | 6 to 8 |
+  | slots 1–5 | — | 9 to 13 |
+  | all six, heavy border still prints | — | 14 to 18 |
+
+  Above three dots this gives a range rather than an exact figure — that's the price of spacing
+  the ticks far enough apart to tell apart at all. On a 180-dpi Brother the sixth tick doesn't
+  fit inside the border, so five slots are drawn; the reading above is unchanged, only the top
+  of the scale is (all five blank = 9 to 11 dots). Very small labels likewise get fewer slots.
+  The ticks sit outside the 1/16" bordered target and don't move with the alignment offset, so
+  an offset you've already dialled in stays valid and every other mark is unchanged.
+
+- **The website feedback form now verifies where a submission came from**, and its spam-trap
+  field no longer catches browser autofill (which silently discarded genuine reports behind a
+  "Thanks — we got it" screen).
+- **M611: wrong-orientation prints after a supply change or mismatch warning.** A full review
+  of the auto-rotation pipeline (prompted by a real sideways print on a 2×1 raised panel with
+  a different-color cassette) found and fixed four compounding causes: the printer's large
+  telemetry reply could be cut off mid-read while it was busy — losing the loaded-cassette
+  info entirely (which is also why the printer warned about the wrong supply: the app couldn't
+  name the loaded cassette, color included); a reading taken mid-swap (printhead open) could
+  seed — and then permanently stick — a garbage rotation for the new cassette; back-to-back
+  jobs could rotate against an out-of-date snapshot instead of the latest cassette. The M611
+  also now logs every orientation decision (the M610 always has) — including when a missing
+  printable rect left the rotation unverified — so any future report is diagnosable.
+
+### Fixed
+
+- **Brady M611: you can now print right to the edge of the label.** A few dots at two edges
+  never came out — content laid flush to the edge lost a sliver. The head can reach them (Brady's
+  own software prints there), so this was our image landing slightly offset on the label, not a
+  limit of the printer. Prints are now offset by the measured amount so the design reaches both
+  edges. The shading that used to mark those dots as unreachable is gone, because they aren't.
+
+- **The designer now shows you what won't print.** Anything you place outside the label's
+  printable area is thrown away when it prints — but the designer drew it in full, so a logo
+  nudged slightly off the top of the label looked perfect on screen and came out with a slice
+  missing. The area outside the printable rectangle is now dimmed, so an object hanging over the
+  edge is obvious while you're laying it out. It's still visible and still draggable — just
+  clearly marked as not printing. (The hatched strips only ever covered the physical label
+  around the printable area, which on a self-laminating wrap is all at one end, leaving the
+  other three edges unmarked.)
+
+- **Symbols no longer print stretched.** A symbol placed on a label kept its proportions on
+  screen but was squashed or stretched to fill its box when printed — the one object type where
+  the design and the finished label disagreed. Plain images are unaffected: they fill their box
+  in both, which is what they have always done.
+
+- **Brady M611: the designers stopped showing the unprintable part of a wrap.** When a cassette
+  was loaded, the hatched "unprintable" strips around the canvas disappeared — so a
+  self-laminating wrap looked like the whole label could be printed on, when in fact only the
+  white strip can and the rest is the clear flap that folds over it. The printer publishes its
+  printable area as a proper rectangle, but the app was reading two older values it also
+  publishes, which turn out to be empty; the empty ones were being padded out to the size of the
+  whole label, which the designer read as "no margin at all". It now reads the real rectangle —
+  and shows the flap at the **end** of the label where it actually is, rather than splitting it
+  half at each end.
+
+- **Brady M611: the designers now show the area the head can actually print.** The M611 can't
+  quite reach two edges of the label — about 5 dots at one side and 9 along the feed, measured on
+  hardware with the calibration grid. Nothing accounted for that, so a design laid out flush to
+  its printable area quietly lost a sliver off two edges, with nothing on screen to warn you (the
+  calibration grid looked perfect precisely because it's drawn at the raster's true bounds). The
+  blue printable-area outline now excludes that strip, so what you draw inside the line is what
+  comes out. Which two edges lose the dots depends on how the label is turned on its way to the
+  head, so the outline follows the supply's orientation, the canvas rotation, and the feed
+  rotation of square wraps like the M6-33-427 — on that wrap the margin lands on the opposite
+  pair of edges from an un-rotated one.
+  Prints themselves are **not** moved: content still lands exactly where the design puts it, and
+  only the strip the head can't reach is lost. **M611 only** — the M610 takes the same supplies
+  but its head has never been measured, and it keeps the old behaviour rather than being given
+  another printer's numbers.
+- **Brady M611: the label size sent with each job can no longer describe a label shorter than
+  the image.** That size is measured in thousandths of an inch, a coarser grid than the
+  printer's dots, and rounding it to the nearest thousandth could come out one dot short of the
+  image actually sent. Whether the printer was trimming that last row of dots or rounding it
+  back up is not something we've been able to confirm on hardware — so the size is now always
+  rounded up, and it can't be short either way. One continuous length in four was affected (any
+  length whose dot count landed just above a whole thousandth, e.g. 1‑1/16"); every die-cut wrap
+  and every whole-inch tape length was already exact, so those prints are byte-for-byte
+  unchanged.
+
+- **Print window: the ticks now follow the records when you insert, duplicate or delete a row.**
+  The print checkmarks stayed on the same row *numbers* while the data slid down past them, so
+  inserting a row above your selection quietly re-pointed it at different records and the job
+  printed the wrong labels. Ticks now stay on the records you ticked, wherever they end up; a
+  newly inserted or duplicated row starts unticked, and deleting a ticked record drops it from
+  the job instead of moving the tick to its neighbour. The same correction applies to the
+  highlighted row selection, so "Delete rows" can no longer remove rows you never highlighted.
+- **A cell you're part-way through editing can no longer be saved onto the wrong record.** If you
+  left a cell editor open and then inserted, duplicated or deleted rows, the editor kept pointing
+  at a row *number* rather than the record — so saving it overwrote whichever record had slid
+  into that position and lost the edit you meant to make, straight through to your source CSV.
+  The open editor now follows its record; if that record is deleted the pending edit is discarded
+  rather than misplaced. The same fix applies to the Custom Designer. Pressing Enter in the
+  "how many rows?" dialog can no longer also save an open cell editor behind it.
+- **Inserting rows while the list is filtered or searched now says what will happen.** Blank rows
+  can't match a filter or a search, so the new rows were written to your data (and, in the print
+  window, to your source CSV) while the list stayed pixel-identical — the command looked like it
+  had done nothing, so it got repeated. Both windows now confirm first, naming the count.
+- **"Insert rows…" no longer opens on a number it will reject.** With more than 1000 rows
+  selected the dialog pre-filled the selection count and then refused its own default. It's now
+  capped at the 1000-row maximum. Inserting *below* a row while the list is sorted also now
+  places the rows after the row you clicked in the order you're looking at, not in file order.
+- **Square wire-wrap labels on the M611 no longer print 90° out when the printer reports its
+  supply size incompletely.** On a square supply the driver can't check the design against the
+  label, so it uses the same fixed starting orientation the M610 uses and lets the supply's
+  "Feed rotation" setting be the control. That only kicked in when the printer reported its
+  printable size; a status message that named the cassette but left the printable size out
+  dropped the label back onto the printer's own reported rotation, which is inconsistent
+  between these cassettes — so the same file printed correctly one minute and sideways the
+  next. The fixed orientation now also applies when the printable size is missing and the
+  design is square, and the Engine keeps the last known printable size for the cassette that
+  is still loaded (never for a different one). Non-square supplies are completely unaffected,
+  and so is continuous tape — remembering the size is limited to die-cut labels, since tape
+  already has its own fallback.
+- **A status message that arrives with nothing but a battery reading no longer makes the
+  printer look like a different cassette.** Those messages already inherited the loaded
+  cassette's size; they now inherit its name too, so a single one of them can't quietly switch
+  off the checks that keep the next label's orientation right for the rest of the session.
+- **M610: a partial cassette-chip read now falls back on the last complete one.** Same
+  remembering as above — it applies to every Brady printer, so a chip read that comes back
+  without the label's printable size no longer loses the auto-rotation that read gave you a
+  moment earlier (most visible on the raised-panel labels, which rotate to fit).
+- **The menu-bar menu now closes when you click anywhere else.** It stayed open while a job
+  was printing so progress remained visible, which meant the only way to dismiss it was to
+  click the menu-bar icon again — and if a job ever failed without finalising, it stayed
+  pinned for the rest of the session. It opens exactly as before; clicking away closes it.
+- **The 1″ vinyl continuous tape (M6C-1000-595) is now in the supply catalog.** It shipped at
+  0.5″ and 2″ but not 1″, so loading that cassette matched nothing: “Use currently installed”
+  reported no supply, and printing warned the label size didn’t match. Existing catalogs get it
+  added automatically, alongside the polyester and clear-polyester 1″ tapes.
+- **The size-mismatch warning no longer invents a length for continuous tape.** It read the
+  cassette’s reported height as a label length — so a 1″-long design on 1″ stock was told the
+  loaded label was “1″ × 0.5″”. A continuous cassette has no length until you set one, so it
+  now reports the tape width, which is the only real measurement.
+- **The calibration grid can now show an edge problem instead of hiding it.** The grid's ink
+  stopped 1/16" short of every printable edge, so it always landed comfortably inside whatever
+  the print head can really reach — while a real label's design runs right up to that edge. A
+  grid that "prints perfectly" therefore proved nothing about a label that prints shifted. The
+  grid now also draws a one-dot border *on* the printable edge: if a side of that outer border
+  is missing on the tape, the printer can't reach that edge and a full-width design will be
+  clipped and pushed towards the opposite side. That border is a fixed reference — unlike the
+  rest of the grid it does *not* move with your alignment offsets, which is what makes a
+  missing side mean the head rather than your offset. The inner grid, its 1" lines and the
+  origin square are unchanged, so an offset you've already dialled in stays valid.
+- **The calibration grid prints on continuous tape again.** An unreleased change lengthened the
+  grid to 4" of tape so that drift along a long label would be visible; on hardware the grid
+  then never printed at all with a continuous supply loaded, while a die-cut grid on the same
+  printer printed fine. The length is back to the supply's own 1" sample, which is what
+  demonstrably comes out of the printer. (Everything else about that change — the flush-edge
+  border and the origin square — is unaffected.) A longer sample may return, with a print
+  behind it.
+- **The calibration grid is now built from a live reading of the loaded supply.** It was the one
+  print in the app sized from the Engine's cached cassette details, which are only refreshed on
+  your Status Refresh interval — so the *first* grid after changing the supply was drawn for the
+  supply you just took out, and printed off the printable area. The Engine now reads the printer
+  before drawing. If it can't confirm what's loaded (it retries once), it doesn't print a grid at
+  all and tells you to run Detect Supply — a grid built for the wrong supply is worse than no
+  grid, since the grid is the measuring instrument. The button also shows that it's working
+  while it reads, and can't be pressed twice into two grids.
+- **A continuous tape the catalog doesn't recognise now gets a full 1" calibration grid.** The
+  grid took its feed length from the cassette, but a cassette has no label length on continuous
+  stock — an unrecognised part could produce a half-inch grid, three cells long, on tape you
+  believe is being measured. The width across the tape still comes from the cassette.
+- **The calibration grid's origin square marked the wrong tape edge on continuous stock.** The
+  solid 1/8" square shows which corner your design's top-left lands on. A continuous design is
+  laid *along* the tape, which puts its origin on the opposite edge from where the square was
+  drawn — so the one mark meant to make feed direction and mirroring readable pointed the wrong
+  way across the tape. It's now drawn on the edge the design actually starts from. Die-cut is
+  unchanged.
+- **The calibration grid now follows the loaded cassette on continuous tape.** It was documented
+  as being sized from the cassette's own reported printable area, but the reported size was
+  silently replaced by the catalog entry whenever the part number matched one — so on continuous
+  tape the grid measured the catalog against itself and could never reveal a disagreement with
+  the actual supply. It now uses the width the cassette reports across the print head. (Die-cut
+  supplies still use the catalog size: the cassette reports its rectangle in the printer's own
+  frame, rotated relative to the way die-cut labels are designed.)
+- **A label whose supply has been deleted from the catalog no longer prints shifted.** Templates
+  save a copy of their supply's geometry so they survive that supply being removed. The saved
+  *printable* width was ignored on print (the full physical label width was used instead) while
+  the design canvas kept using the printable width — so every object landed hard against one
+  edge of the tape, shifted by the difference, with the far edge cut off. Both now use the same
+  saved printable width. Supplies still in the catalog are completely unaffected.
+- **The print window drew the unprintable margins on the wrong edges.** For continuous tape in
+  its normal (lengthwise) orientation, the hatched "unprintable" strips were shown at the two
+  *ends* of the label instead of along the two tape edges — so the preview reported the wrong
+  edges as unsafe. The designer already got this right; the print window now matches it. Preview
+  only; it never affected what was printed.
+- **The M611 now says so in the log when a label is narrower than the tape it's printing on.**
+  The driver accepts a design within 4% of the tape width as correctly oriented, but nothing
+  centres it, so up to ~2 mm of silent sideways shift was possible on 2" tape (usually a sign
+  the template's supply doesn't match the loaded cassette). It now writes one clear line naming
+  both widths and the difference, for any size of mismatch.
+- **A continuous label that's the wrong width for the tape is no longer rotated sideways because
+  of its length.** When a design didn't match the loaded tape's width, the M611 could fall
+  through to a last-resort orientation search whose only remaining measurement was the label's
+  *length* — so an ordinary length that happened to land within 4% of the tape width printed the
+  whole label sideways. The label's length carries no orientation information, so it can no
+  longer decide one: a design that misses the tape width by a fraction of it is treated as
+  mis-sized (printed upright, shifted, and named in the log) rather than as sideways. A design
+  that genuinely arrives rotated — whose width is a length, not a near-miss of the tape — is
+  still turned the right way up as before.
+- **Long labels on continuous tape no longer print sideways and clipped on the M611.** An 8"-long
+  label on 2" continuous tape (M6C-2000-595) came out rotated across the tape with most of it cut
+  off, and rotating the canvas made no difference. The driver was matching the design against
+  *both* dimensions of the printable area the cassette reports — but on continuous tape the length
+  is whatever you set at print time, so the cassette's reported length (here 0.5") is meaningless
+  and nothing ever matched. On continuous stock the driver now fits the design to the **tape
+  width** only — the one dimension the print head actually fixes — and the label's length never
+  affects which way it comes out: a design that already spans the tape is sent exactly as the
+  designer previewed it, at any length. Continuous tape is recognised from the supply catalog
+  (the same place the label's size comes from) rather than a printer flag, because Brady's own
+  cassettes report continuous tape as "die-cut". Die-cut supplies are untouched: they still match
+  both dimensions exactly as before, and any supply the driver can't confirm is continuous stays
+  on the die-cut behaviour.
+- **Wire-wrap labels on a square printable area (e.g. the 1.5" × 4" M6-33-427) print the way the
+  "Rotate 90°" setting says.** On this stock the setting is the only orientation control that
+  reaches the printer, and it was being read from whichever part number happened to be listed
+  first — so ticking or unticking the box on the other part number changed nothing at all.
+- **The same label now comes out the same way up on the M611 as on the M610.** On a die-cut
+  supply with a square printable area the printer's own reported orientation was steering the
+  M611, and it isn't consistent across these supplies (one square 427 wrap reports 270°, another
+  reports 0°) — so a design that had printed correctly on the M610 for weeks came out 90° off on
+  the M611. On a square printable area the driver now uses the same fixed orientation the M610
+  uses and ignores the reported value, leaving the supply's "Feed rotation" as the single control
+  on both printers — matched to the design's own orientation exactly as the M610 matches it, so a
+  design rotated with the designer's ⟳ 90° button still lands the same way on both printers.
+  **This applies to every die-cut supply with a square printable area**, which on Brady M6 stock
+  is the 33-427 wrap plus M6-29-427, M6-23-427, M6-19-423, M6-32-483 and the small 423 squares —
+  each of those now follows its "Feed rotation" setting rather than the printer's reported value.
+  Supplies with a non-square printable area, including the hardware-validated wire wraps, are
+  untouched. The print log now records which orientation was used and why.
+- **A label no longer prints rotated when the printer doesn't report the loaded cassette's
+  orientation.** If a status read comes back without it (a partial read, or one taken while the
+  printhead was open mid-swap), the Engine now reuses the orientation that printer last reported
+  for the same cassette instead of falling back to a fixed assumption. Only if a cassette has
+  never reported one does the old default apply, and the log now says so explicitly.
+- **Swapping cassettes can no longer print one label using the previous supply's dimensions.**
+  When a status read arrives with no dimensions, the Engine fills them in from the last good
+  read — but it did so even when the read already named a *different* cassette, so a label sent
+  in that window could be laid out (and oriented) for the supply that had just been taken out.
+  The fill-in now only happens for the same cassette.
+- **Custom Designer: a QR code or table cell bound to your data now prints one label per row.**
+  Previously a data-bound label whose only bound object was a barcode or a table cell was
+  treated as a single label (printing one row instead of the whole batch).
+- **Custom Designer: switching to a different data file now resets the print selection.** The
+  checked rows and print range from the previous file no longer carry over onto the new one.
+- **Custom Designer: inserting or deleting rows in Free Edit keeps your print checkmarks on
+  the right records** (they no longer shift onto neighbouring rows, which could print the
+  wrong labels).
+- **Custom Designer: tables no longer lose rows past 60 when saved and reopened, and you can
+  now create a table with more than 20 rows.** The Insert-table dialog silently clamped your
+  number to 20 even though rows could be added afterwards; creation, insertion and saving now
+  share one limit (200 rows / 60 columns) and say so when you hit it instead of quietly
+  changing what you typed.
+- **Custom Designer: the tab name now updates when you Save or Save As.** The tab briefly
+  showed the new file name and then reverted to the old one (or "Untitled Custom Design"),
+  because the page echoed its stale document name back over it.
+- **Custom Designer formulas that reference your own column names now print the value, not a
+  blank.** A bound column whose name matched a built-in wire field (e.g. "Rack", "Signal")
+  previewed correctly but printed empty.
+- **Auto-scale (non-wrapping) text no longer prints as an illegible hairline.** Long text in a
+  small box now clamps to the same minimum size the on-screen preview shows.
+- **Starter templates no longer pile up as duplicates.** Reopening the supplies-and-templates
+  setup and choosing "Replace" (or "Install all & clear existing") now actually replaces the
+  existing starter templates instead of adding "Sample 1_5x1_5-2", "-3", … each run — and a
+  legacy template file left over from an old version no longer resurrects the old design.
+- **Crash reports now capture the most common crash type.** Errors on the main thread were
+  previously swallowed and never reported; they now produce a crash log and the "the app
+  crashed last time" report offer.
+- **The failed-print folder is now cleaned up** so repeated failures can't accumulate large
+  files on disk over time.
+
+#### Saving and quitting
+- **Quitting a Designer with ⌘Q now asks to save.** Both designers exited immediately and
+  discarded every unsaved tab — there was no prompt at all on that path.
+- **Edits made while the Save panel is open are no longer lost.** Saving wrote the snapshot
+  taken when you pressed Save and then marked the tab clean, so anything typed while the panel
+  was up could be discarded on close without a prompt.
+- **Inline edits to a print list are no longer lost when Auto Print quits**, and reprinting
+  right after an edit no longer shows the pre-edit values.
+
+#### Print window
+- **Large record lists scroll and search smoothly again.** With no row picked, the list was
+  rendering every row from the top of the list downward, so typing in the search box could
+  re-lay-out thousands of rows on every keystroke.
+- **The template bar, presets strip and preview sidebar keep their scroll position** instead
+  of snapping back to the start whenever printer status updated in the background.
+- **Pasting into Free Edit with a sort active no longer overwrites the wrong rows** (and no
+  longer writes that corruption straight back to the CSV). The same fix is in Custom Designer.
+- **The print preview now shows the real value for a formula that references one of your own
+  CSV columns** instead of the column's name — the label already printed the value, so the
+  preview was contradicting the output.
+- **Cancelling after changing only the Cut or feed setting now records a Recent Print**, so
+  you can pick the job back up.
+
+#### Designer
+- **The workspace and grid now fill the window at any zoom, and objects are never cut off.**
+  The design area was a fixed 2″ border around the label, so a small label left blank page
+  around it and anything you stretched past that border was sliced at the edge. The workspace
+  now sizes itself to whichever is largest — the label and its margin, the visible window, or
+  your objects — and grows live as you drag something outwards. (The grid is now drawn as a
+  repeating pattern rather than one line per gridline, so a large workspace at a fine grid
+  size stays fast.)
+- **⌘P prints**, alongside ⌘Return, in both the Custom Designer and the print window.
+- **Changing the supply on a continuous label keeps your label length.** It snapped back to
+  1″ every time, even though the supply only determines the tape width — the length is your
+  choice. (Die-cut labels still take their length from the die.)
+- **Undo is finer-grained.** Property-panel edits (bold, size, alignment, rotation, fill…) and
+  arrow-key nudges weren't recorded individually, so one ⌘Z reverted them together with the
+  previous action.
+- **"Insert column before/after" now inserts where you asked** instead of at the far right
+  once you'd reordered any column.
+- **Inserting a row or column through a merged region no longer makes hidden text reappear.**
+- **Text that overflows its box now previews the same way it prints.** The preview showed an
+  ellipsis ("PATCHBAY A…") while the label clipped mid-character; the preview now clips too,
+  matching the printed result and the existing behaviour for auto-scaled text.
+- **Multi-line text with typed line breaks now prints at the same line spacing as the preview**
+  (it was using the font's natural leading, drifting up to ~15% per line).
+- **Dates print correctly on Macs set to a non-Gregorian calendar** (e.g. Buddhist or Japanese
+  era), which previously printed a different year than both previews showed.
+
+#### Printers
+- **"Detect cassette" and the printer list stay responsive while another printer prints.**
+  Adding, removing or refreshing a printer could appear to do nothing until the next status
+  sweep, and a detect on an idle network printer was declined even though its status channel
+  is separate from the print pipe.
+- **Brother: a job no longer reports "done" when the printer stopped early**, tape-out now
+  reports "End of media" instead of a blank reason, a second Brother printer is still found
+  when the first is busy, and the calibration grid prints at the loaded tape's width.
+- **Brother: 3.5 mm tape is now addressed correctly** (it was sent as 3 mm, which the printer
+  rejects). Hardware-unverified — please report how it behaves.
+- **M611: live status stays accurate on busy jobs.** Several status updates arriving together
+  could be dropped, and a reused job slot could report labels complete before they printed —
+  which shortened the window in which Cancel still worked.
+
+#### Updates and reporting
+- **Update checks now actually run on a schedule.** They only ever ran once per Engine launch,
+  so on a Mac that sleeps instead of restarting, "Every 7 days" and "Remind Me Tomorrow" never
+  fired. Checking for updates also warns before quitting the suite if a print job is running,
+  and cancelling a download at the moment it completes no longer installs anyway.
+- **A problem report can no longer be lost by closing the window mid-send** — the report window
+  stays put until the send finishes, so the "Copy & Open Feedback Form" fallback is reachable.
+- **Settings shared between the apps no longer diverge silently** if they can't be written, and
+  Auto Print now picks up a settings change even if the notification is dropped.
+
+#### Files and catalog
+- **A supply catalog written by a newer version is no longer silently stripped** when opened by
+  an older one.
+- **Brother P-touch printers named with a prefix (e.g. "Brother PT-P750W") are recognised again**
+  for printable-width purposes.
+- **Objects skipped during a Brother `.lbx` import are now reported** instead of vanishing
+  silently, and a cloud file that never finishes downloading no longer polls forever.
+- **Brady `.BWT` templates no longer import stray fields from a previous layout.** A Brady file
+  that was built by re-pointing an older template at a different label can keep the old
+  layout's text objects in the file, attached to nothing — they were imported at their original
+  coordinates and landed off the label. Those leftovers are now identified by their position in
+  the file's structure, skipped when they can't fit the label, and reported so a partial import
+  is never silent. Fields that genuinely belong to the label are untouched.
+
+### Security
+
+- **Opening a malicious Brother `.lbx` template can no longer read your files.** A crafted
+  P-touch file could use an XML trick to pull the contents of a local file (e.g. an SSH key)
+  into the imported label's text. The importer now refuses external XML entities outright.
+- **A corrupt or hostile `.lbx` no longer crashes the app.** A file with a non-numeric
+  coordinate could terminate the Custom/Template Designer instantly (losing other open tabs);
+  such values are now rejected on import.
+- **Custom Designer: a crafted label file can no longer run code in the design canvas.** The
+  supply name from an opened document is now escaped before display in the print header.
+
 ## [1.18.1] — 2026-08-04
 
 ### Changed
