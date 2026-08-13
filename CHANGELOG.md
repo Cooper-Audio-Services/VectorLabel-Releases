@@ -12,6 +12,16 @@ number (git commit count) + short SHA, shown in the menu-bar footer.
 
 ## [Unreleased]
 
+## [1.19.1] - 2026-08-13
+
+### Fixed
+- **Feed to clear now actually feeds.** The job said it was printing one extra label but only
+  the real ones came out — the leading label was completely blank, and a page with no ink on it
+  never reached the paper, so the feed that clears the gap between the print head and the cutter
+  silently didn't happen. The lead label now prints **DISCARD** across it, which both makes it
+  print and saves you wondering whether a blank label was a misprint.
+
+
 ## [1.19.0] - 2026-08-09
 
 ### Added
