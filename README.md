@@ -1,6 +1,8 @@
 # VectorLabel — Releases
 
-Public, signed & notarized installers for **VectorLabel** (the source lives in a separate private repo). The **Releases** tab has every build; the app auto-updates from here.
+Signed & notarized installers for **VectorLabel** (the source lives in a separate private repo). The app auto-updates from here.
+
+There is no public release right now: the next version of VectorLabel is in beta. To get it, see **https://vectorlabel.cooperaudioservices.com/downloads**.
 
 - Website & docs: https://vectorlabel.cooperaudioservices.com/
-- License: releases after v1.19.1 are licensed under the [VectorLabel License Agreement](https://vectorlabel.cooperaudioservices.com/license). v1.19.1 and earlier keep the MIT + Commons Clause license they shipped with.
+- License: VectorLabel is licensed under the [VectorLabel License Agreement](https://vectorlabel.cooperaudioservices.com/license). Earlier releases have been withdrawn; the terms a copy of an earlier version came with are explained under [Earlier releases](https://vectorlabel.cooperaudioservices.com/license#earlier-releases).
